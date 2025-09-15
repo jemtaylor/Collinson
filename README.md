@@ -1,6 +1,7 @@
 # Collinson
 
 Architecture Overview
+---------------------
 
 The architecture chosen is a distributed micro-service design utilising discrete domain services. This should allow for the following benefits:
 - Scalability and Flexibility
@@ -12,6 +13,8 @@ The architecture chosen is a distributed micro-service design utilising discrete
 Where possible we will use third parties to handle areas that are not the core focus of the PriorityPass business, such as taking payments. This implies a need for integrations utilising API's. This, in turn, suggests the use of a commercial API Gateway product to ensure security (e.g. authentication and DDOS protection), robustness and scalability.
 
 Technical choices:
+------------------
+
 - Leave the payment process with the Tax platform. Simplifies our design, reduces our PCI/DSS exposure
 - Use OAuth2.0 authentication flow to integrate the two accounts. This allows a smoother flow for the customer for subsequent bookings. Allows the customer to see all their taxi journeys under their account in the Taxi app whether booked through PriorityPass or not.
 - Microservice design - for reasons detailed above.
@@ -21,6 +24,7 @@ This also separates the workflow logic into one service instead of this being sp
 
 
 PCI Compliance
+--------------
 
 The solution will rely on the Taxi Partner to take the payments by charging the journey to the customer's 'Taxi' account. This relieves PriorityPass from the need to handle payments and therefore frees us from any PCI/DSS concerns.
 This relies on the assumption that the customer will have an account with the Taxi partner.
@@ -28,7 +32,54 @@ If this assumption is incorrect, and the Taxi journeys need to be paid for by th
 
 
 Omissions & Trade-offs:
+-----------------------
 
 Performance Aspects - depending on the load and peak rates this solution may well need further technical features to cope, for instance by using caching and de-coupling components using messaging queues. This would be something that should be considered when the load profile is known and after testing the architecture to see how it performs. The distributed nature of the design should allow services to be scaled easily, but the amount of scaling and how the load is distributed would need some work.
 
 UI design could be better. There is probably a lot more needed around choosing addresses and pick up times. Probably needs an expert in UX to get it smoother.
+
+
+
+
+
+T-Shirt Sizes:
+--------------
+
+Component :   Flight Details service
+
+Description : Store and retrieve flight details pulled from the third party flight information partner
+
+Size: M
+
+
+Component :   Journey Estimator
+
+Description : Makes calls to the Taxi Manager to retrieve the tax travel times and to the Flight Details service to retrieve flight departure times, then estimates a suitable departure time for the customer.
+
+Size: L
+
+
+Component :   Booking Orchestrator
+
+Description : Orchestrates the flow of the customer journey. Handles error conditions when a service fails or cannot provide a suitable response.      
+
+Size: L
+
+
+Component :   Taxi Manager 
+
+Description : Acts as an adapter to the Taxi third party API and stores the customer’s unique identifier linked to their PriorityPass identity. Also stores a record of booked trips.
+
+Size : M to L depending on the complexity of the Tax API
+
+                             
+                            
+Component :   PriorityPass UI changes
+
+Description : Present the user flow and interface with the Booking Orchestrator API
+
+Size : M
+
+
+
+
